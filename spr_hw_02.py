@@ -1,5 +1,5 @@
 import numpy as np
-from linear_regression import MSE, accuracy, gradient_ascent_for_maximum_likelihood, linear_regression, linear_regression_evaluation, sigmoid
+from logistic_regression import MSE, accuracy, gradient_ascent_for_maximum_likelihood, linear_regression, linear_regression_evaluation, sigmoid
 from plotter import plot_decision_boundary
 from preprocessing import train_test_split
 
