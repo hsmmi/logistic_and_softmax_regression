@@ -9,16 +9,24 @@ def sigmoid(z):
     z = z.astype(float)
     return 1 / (1 + np.exp(-z)) 
 
-def predict(X_input, theta):
+def probability(X_input, theta):
+    """ 
+    Gets matrix X_input and theta and compute P(X_input | theta)
+    """
+    return sigmoid(X_input @ theta)
+
+def predict_logistic_regression(X_input, theta):
     """
     Gets matrix X_input and theta and compute P(X_input | theta)
     Return 1 if P(X_input | theta) >= 0.5 and 0 otherwise
     """
-    P = sigmoid(X_input @ theta)
+    P = probability(X_input, theta)
     number_of_half = np.sum([P==0.5])
     random_lable = np.random.randint(0,2,size=number_of_half)
     P[P == 0.5] = random_lable
-    return P > 0.5
+    P = (P > 0.5)
+    P = P.astype(int)
+    return P
 
 def MSE(X_input ,y_input, theta):
     """
@@ -27,12 +35,12 @@ def MSE(X_input ,y_input, theta):
     return ((sigmoid(X_input @ theta) - y_input).T@ \
         (sigmoid(X_input @ theta) - y_input))[0][0] / len(X_input)
 
-def accuracy(X_input ,y_input, theta):
+def accuracy(predict_input ,y_input):
     """
     Gets matrix X_input, vector y_input, and vector theta then compute 
     the percentage of the sample that was predicted correctly
     """
-    return sum(predict(X_input,theta) == y_input)[0] / len(X_input) * 100
+    return sum(predict_input == y_input)[0] / len(predict_input) * 100
 
 def gradient_ascent_for_maximum_likelihood(X_input ,y_input, alpha, printer=0, plotter=0):
     """
@@ -161,4 +169,47 @@ def logistic_regression_evaluation(X_test, y_test, theta, printer = 0, plotter=0
 
     return MSE_test
 
+def pick_one_vs_all(y_input, class_lable):
+    return np.array(y_input == class_lable, dtype=float).reshape(-1,1)
 
+def one_vs_rest(X_train, X_test, y_train, y_test, alpha):
+    prob_i_rest_train = []
+    prob_i_rest_test = []
+    for i in range(3):
+        y_i_rest_train = pick_one_vs_all(y_train,i)
+        theta_i_rest = gradient_ascent_for_maximum_likelihood(X_train, y_i_rest_train, alpha, plotter= 0, printer = 0)
+        prob_i_rest_train.append(probability(X_train,theta_i_rest))
+        prob_i_rest_test.append(probability(X_test,theta_i_rest))
+    predict_MC_train_ova = np.argmax(prob_i_rest_train, axis=0)
+    predict_MC_test_ova = np.argmax(prob_i_rest_test, axis=0)
+    train_accuracy_ova = accuracy(predict_MC_train_ova,y_train)
+    test_accuracy_ova = accuracy(predict_MC_test_ova,y_test)
+    return train_accuracy_ova, test_accuracy_ova
+
+def pick_one_vs_one(classes_input, class_0, class_1):
+    X_return = np.concatenate((classes_input[class_0],classes_input[class_1]))
+    y_return = np.concatenate((np.zeros(len(classes_input[class_0])), \
+        np.zeros(len(classes_input[class_1]))+1)).reshape(-1,1)
+    return X_return, y_return
+
+def one_vs_one(X_train, X_test, y_train, y_test, classes_train, alpha):
+    class_i_j_train = []
+    class_i_j_test = []
+    for j in range(3):
+        for i in range(j):
+            X_i_j_train, y_i_j_train = pick_one_vs_one(classes_train, i, j)
+            theta_i_j = gradient_ascent_for_maximum_likelihood(X_i_j_train, y_i_j_train, alpha, plotter= 0, printer = 0)
+            tmp_label_train = predict_logistic_regression(X_train, theta_i_j)
+            tmp_label_train[tmp_label_train == 1] = j
+            tmp_label_train[tmp_label_train == 0] = i
+            class_i_j_train.append(tmp_label_train)
+            tmp_label_test = predict_logistic_regression(X_test, theta_i_j)
+            tmp_label_test[tmp_label_test == 1] = j
+            tmp_label_test[tmp_label_test == 0] = i
+            class_i_j_test.append(tmp_label_test)
+    from scipy import stats
+    predict_MC_train_ovo = stats.mode(class_i_j_train, axis=0)[0][0]
+    predict_MC_test_ovo = stats.mode(class_i_j_test, axis=0)[0][0]
+    train_accuracy_ovo = accuracy(predict_MC_train_ovo,y_train)
+    test_accuracy_ovo = accuracy(predict_MC_test_ovo,y_test)
+    return train_accuracy_ovo, test_accuracy_ovo

@@ -1,5 +1,5 @@
 import numpy as np
-from logistic_regression import MSE, accuracy, gradient_ascent_for_maximum_likelihood, logistic_regression, logistic_regression_evaluation, sigmoid
+from logistic_regression import MSE, accuracy, gradient_ascent_for_maximum_likelihood, logistic_regression, logistic_regression_evaluation, one_vs_one, one_vs_rest, predict_logistic_regression, probability, sigmoid
 from plotter import plot_decision_boundary
 from preprocessing import train_test_split
 
@@ -10,29 +10,17 @@ print(theta)
 # plot_decision_boundary(X_train, classes_train, theta, 'Train set')
 # plot_decision_boundary(X_test, classes_test, theta, 'Test Set')
 
-print(accuracy(X_train,y_train,theta))
-print(accuracy(X_test,y_test,theta))
+predict_BC_train = predict_logistic_regression(X_train,theta)
+print(accuracy(predict_BC_train,y_train))
+predict_BC_test = predict_logistic_regression(X_test,theta)
+print(accuracy(predict_BC_test,y_test))
 
 X_train, X_test, y_train, y_test, classes_train, classes_test = train_test_split('dataset/iris.csv',train_size=0.80,normalization='z_score')
 
-def pick_one_vs_all(y_input, class_lable):
-    return np.array(y_input == class_lable, dtype=float).reshape(-1,1)
 
-y_0_rest_train = pick_one_vs_all(y_train,0)
-y_0_rest_test = pick_one_vs_all(y_test,0)
-theta_0_rest = gradient_ascent_for_maximum_likelihood(X_train, y_0_rest_train, 1, plotter= 0, printer = 0)
-print(theta_0_rest)
-print(accuracy(X_train,y_0_rest_train,theta_0_rest))
-print(accuracy(X_test,y_0_rest_test,theta_0_rest))
-
-def pick_one_vs_one(classes_input, class_0, class_1):
-    X_return = np.concatenate((classes_input[class_0],classes_input[class_1]))
-    y_return = np.concatenate((np.zeros(len(classes_input[class_0])), \
-        np.zeros(len(classes_input[class_1]))+1)).reshape(-1,1)
-    return X_return, y_return
-
-X_0_1_train, y_0_1_train = pick_one_vs_one(classes_train, 0, 1)
-X_0_1_test, y_0_1_test = pick_one_vs_one(classes_test, 0, 1)
-
+train_accuracy_ova, test_accuracy_ova = one_vs_rest(X_train, X_test, y_train, y_test, 100)
+print(train_accuracy_ova, test_accuracy_ova)
+train_accuracy_ovo, test_accuracy_ovo = one_vs_one(X_train, X_test, y_train, y_test, classes_train, 100)
+print(train_accuracy_ovo, test_accuracy_ovo)
 
 print('hi')
