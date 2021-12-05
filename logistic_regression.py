@@ -2,33 +2,48 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 def sigmoid(z):
+    """
+    Gets vector or scaler z 
+    Return sigmoid(z)
+    """
     z = z.astype(float)
     return 1 / (1 + np.exp(-z)) 
 
 def predict(X_input, theta):
-    return sigmoid(X_input @ theta) >= 0.5
+    """
+    Gets matrix X_input and theta and compute P(X_input | theta)
+    Return 1 if P(X_input | theta) >= 0.5 and 0 otherwise
+    """
+    P = sigmoid(X_input @ theta)
+    number_of_half = np.sum([P==0.5])
+    random_lable = np.random.randint(0,2,size=number_of_half)
+    P[P == 0.5] = random_lable
+    return P > 0.5
 
 def MSE(X_input ,y_input, theta):
-    return ((sigmoid(X_input @ theta) - y_input).T@(sigmoid(X_input @ theta) - y_input))[0][0] / len(X_input)
+    """
+    Gets matrix X_input, vector y_input, and vector theta then compute mean square error 
+    """
+    return ((sigmoid(X_input @ theta) - y_input).T@ \
+        (sigmoid(X_input @ theta) - y_input))[0][0] / len(X_input)
 
 def accuracy(X_input ,y_input, theta):
+    """
+    Gets matrix X_input, vector y_input, and vector theta then compute 
+    the percentage of the sample that was predicted correctly
+    """
     return sum(predict(X_input,theta) == y_input)[0] / len(X_input) * 100
 
 def gradient_ascent_for_maximum_likelihood(X_input ,y_input, alpha, printer=0, plotter=0):
     """
     It gets matrix samples(X_input) and vector labels(y_input) which should be {0, 1}
-    Compute learning parameters with updating all theta(i) for maximize likelihood
-    in each epochs and stop if #epochs exit the threshold or norm vector diffrence 
-    theta was less than eps
+    Compute learning parameters with updating all theta(i) to maximize the likelihood
+    in each epoch and stop if #epochs exit the threshold or difference of
+    mean square error was less than eps
     Return learned parameters
     """
 
-    # def MSE(X_input ,y_input, theta):
-    #     return ((X_input @ theta - y_input).T@(X_input @ theta - y_input))[0][0] / len(X_input)
-
-    # scale = ((X_input[:][1]).mean())**2 + 1
-    scale = 1
-    normal_alpha = alpha/len(X_input)/scale
+    normal_alpha = alpha/len(X_input)
 
     def gradient(X_input, theta, y_input):
         return X_input.T @ (y_input - sigmoid(X_input @ theta))
@@ -72,7 +87,7 @@ def gradient_ascent_for_maximum_likelihood(X_input ,y_input, alpha, printer=0, p
     
     return theta
 
-def linear_regression(X_train, y_train, alpha = None, printer = 0, plotter = 0):
+def logistic_regression(X_train, y_train, alpha = None, printer = 0, plotter = 0):
     """
     It gets matrix samples train(X_train) and their labels(y_train) and method.
     alpha:
@@ -106,7 +121,7 @@ def linear_regression(X_train, y_train, alpha = None, printer = 0, plotter = 0):
     
     return theta, MSE_train
 
-def linear_regression_evaluation(X_test, y_test, theta, printer = 0, plotter=0):
+def logistic_regression_evaluation(X_test, y_test, theta, printer = 0, plotter=0):
     """
     It gets matrix samples test(X_test) and their labels(y_test) and learned
     parameters(theta) and plotter(by default 0).
@@ -119,6 +134,7 @@ def linear_regression_evaluation(X_test, y_test, theta, printer = 0, plotter=0):
         print(f'vector y_test is\n{y_test}\n')
 
     prediction_test = X_test @ theta
+    # predict
     if(printer):
         print(f'vector prediction_test is\n{prediction_test}\n')
 
@@ -135,7 +151,9 @@ def linear_regression_evaluation(X_test, y_test, theta, printer = 0, plotter=0):
         eX_test = X_test.argmax(axis=0)[1]
 
         plt.plot(list(zip(*X_test))[1], y_test, ".", label="sample")
-        plt.plot([X_test[sX_test][1],X_test[eX_test][1]], [prediction_test[sX_test],prediction_test[eX_test]], "-r", label="regression line")
+        plt.plot([X_test[sX_test][1],X_test[eX_test][1]], \
+            [prediction_test[sX_test],prediction_test[eX_test]], "-r", \
+                label="regression line")
         plt.legend(loc="upper left")
         plt.xlabel('Feature')
         plt.ylabel('Lable')

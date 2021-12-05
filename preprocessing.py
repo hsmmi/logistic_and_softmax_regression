@@ -41,17 +41,17 @@ def read_dataset_to_X_and_y(file, range_atr= None, normalization = None, min_val
 
 def train_test_split(file, range_atr= None, range_class=None, train_size = 0.75, normalization = None, min_value = None, max_value = None):
     """
-    Read dataset from file and split to attribute andd clases then slpit 
+    Read dataset from file and split to attribute and clases then slpit 
     it to train and test with first train_size of each class to train and
-    rest to test
+    rest to test in each class in range_class 
     normalization:
     .   by default is None and can be "z_score", "scaling", "clipping"
         or "log_scaling"
     .   for "scaling", "clipping" must set min_value and max_value
-    Return X_train, X_test, y_train, y_test as nparray
+    Return X_train, X_test, y_train, y_test as nparray also classes_train
+    and classe_test split by each class
     """
     import numpy as np
-    
     
     col_name, data = read_dataset_with_pandas(file)
     if(range_atr == None):
@@ -70,7 +70,7 @@ def train_test_split(file, range_atr= None, range_class=None, train_size = 0.75,
     data_test = np.concatenate([data[lable_start[i]+int(count_class[i]*(train_size)):lable_start[i]+count_class[i]] for i in range(range_class[0],range_class[1])])
 
     if(range_atr[1] == len(col_name)):
-        range_atr[1] -= 1
+        range_atr = (range_atr[0], range_atr[1]-1)
     X_train = np.array(list(map(lambda x:np.concatenate(([1], x[range_atr[0]:range_atr[1]])),data_train)))
     X_test = np.array(list(map(lambda x:np.concatenate(([1], x[range_atr[0]:range_atr[1]])),data_test)))
     y_train = np.array(list(map(lambda x:[x[-1]],data_train)))
