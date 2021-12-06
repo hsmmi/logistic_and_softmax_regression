@@ -89,7 +89,7 @@ def train_test_split(file, range_atr= None, range_class=None, train_size = 0.75,
         elif(normalization == 'clipping'):
             X_train = clipping(X_train, min_value, max_value)
             X_test = clipping(X_test, min_value, max_value)
-        elif(normalization == 'logScaling'):
+        elif(normalization == 'log_scaling'):
             X_train = log_scaling(X_train)
             X_test = log_scaling(X_test)
         else:

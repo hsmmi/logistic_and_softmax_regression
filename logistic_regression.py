@@ -49,7 +49,7 @@ def accuracy(predict_input ,y_input):
     """
     return sum(predict_input == y_input)[0] / len(predict_input) * 100
 
-def gradient_ascent_for_maximum_likelihood(X_input ,y_input, alpha, printer=0, plotter=0):
+def gradient_ascent_for_maximum_likelihood_logistic_regression(X_input ,y_input, alpha, printer=0, plotter=0):
     """
     It gets matrix samples(X_input) and vector labels(y_input) which should be {0, 1}
     Compute learning parameters with updating all theta(i) to maximize the likelihood
